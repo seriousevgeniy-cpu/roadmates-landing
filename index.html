@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="RoadMates — сервис попутчиков нового поколения. AI-мэтчинг, социальное доверие, P2P логистика. Поехали вместе!">
+  <meta name="og:title" content="RoadMates — Поехали вместе">
+  <meta name="og:description" content="Сервис совместных поездок и посылок на основе социальной сети доверия">
+  <meta name="og:image" content="https://www.roadmates.app/og-image.png">
+  <title>RoadMates — Поехали вместе</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Marck+Script&family=Neucha&family=Caveat:wght@600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --navy: #0A1628;
+      --mint: #1DE9B6;
+      --mint-light: #7EEAD6;
+      --text-primary: #ffffff;
+      --text-secondary: rgba(255, 255, 255, 0.7);
+      --text-muted: rgba(255, 255, 255, 0.45);
+      --border: rgba(29, 233, 182, 0.2);
+      --bg-hover: rgba(29, 233, 182, 0.08);
+      --gradient-mint: linear-gradient(135deg, #1DE9B6 0%, #7EEAD6 100%);
+      --road-blue: #123a75;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: var(--navy);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Calibri, Aptos, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ============ HEADER / NAV ============ */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 22, 40, 0.92);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 16px 24px;
+    }
+
+    .logo {
+      font-size: 1.4em;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--mint);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo::before {
+      content: "🛣️";
+      font-size: 1.3em;
+    }
+
+    nav ul {
+      display: flex;
+      list-style: none;
+      gap: 32px;
+      align-items: center;
+    }
+
+    nav a {
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.95em;
+      transition: color 0.3s ease;
+    }
+
+    nav a:hover {
+      color: var(--mint);
+    }
+
+    .nav-cta {
+      background: var(--mint);
+      color: var(--navy);
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+
+    .nav-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(29, 233, 182, 0.25);
+    }
+
+    .nav-vk {
+      background: #0077ff;
+      color: white;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.85em;
+      transition: all 0.3s ease;
+    }
+
+    .nav-vk:hover {
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 119, 255, 0.3);
+    }
+
+    /* ============ HERO SECTION ============ */
+    .hero {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px 80px;
+      position: relative;
+    }
+
+    .hero-top {
+      display: flex;
+      align-items: center;
+      gap: 48px;
+      margin-bottom: 40px;
+    }
+
+    .hero-content {
+      flex: 1 1 480px;
+      min-width: 0;
+    }
+
+    .hero-image {
+      flex: 1 1 420px;
+      min-width: 280px;
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: 360px;
+      object-fit: cover;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.2em, 5vw, 3.4em);
+      font-weight: 700;
+      margin-bottom: 20px;
+      line-height: 1.2;
+      letter-spacing: -1px;
+    }
+
+    .hero h1 .highlight {
+      background: var(--gradient-mint);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: 1.15em;
+      color: var(--text-secondary);
+      margin-bottom: 0;
+      line-height: 1.7;
+    }
+
+
+    /* ============ SEARCH CARD (road panel) ============ */
+    /* Mobile-first default: stacked layout over a composite curb+asphalt background */
+    .search-card {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 24px;
+      background-color: #3a3b3d;
+      background-image:
+        linear-gradient(180deg, rgba(10, 16, 24, 0.3) 0%, rgba(10, 16, 24, 0.08) 25%, rgba(10, 16, 24, 0.08) 75%, rgba(10, 16, 24, 0.35) 100%),
+        url('image/road-curb-top.jpg'),
+        url('image/road-curb-bottom.jpg'),
+        url('image/asphalt-tile.jpg');
+      background-position: center, top center, bottom center, center;
+      background-size: cover, 100% 44px, 100% 44px, 160px 76px;
+      background-repeat: no-repeat, no-repeat, no-repeat, repeat;
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 24px 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .search-fields {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    /* ≥900px: exact reproduction of the source mockup photo — the same photo
+       (baked-in fields/buttons removed) as a single fixed-aspect background,
+       with real fields/buttons absolutely positioned over the same regions. */
+    @media (min-width: 900px) {
+      .search-card {
+        flex-direction: row;
+        aspect-ratio: 3360 / 1274;
+        background-image: url('image/hero-clean.jpg');
+        background-size: cover;
+        background-position: center;
+        padding: 0;
+      }
+
+      .search-fields {
+        position: absolute;
+        left: 4%;
+        top: 30%;
+        width: 66%;
+        height: 20%;
+        grid-template-columns: 27.16% 27.77% 29.69% !important;
+        gap: 7.69% !important;
+      }
+
+      .search-actions {
+        position: absolute;
+        right: 1.2%;
+        top: 19%;
+        width: 24.8%;
+        height: 62%;
+        justify-content: space-between !important;
+      }
+    }
+
+    .search-field label {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-family: 'Marck Script', 'Neucha', cursive;
+      font-size: 2.3em;
+      font-weight: 400;
+      letter-spacing: 0;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55), 0 0 16px rgba(255, 255, 255, 0.22);
+      transform: rotate(-2deg);
+      transform-origin: left center;
+      margin-bottom: 2px;
+    }
+
+    .chalk-stick {
+      flex-shrink: 0;
+      transform: rotate(-8deg) translateY(8px);
+      filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4));
+    }
+
+    .search-field-input {
+      position: relative;
+    }
+
+    .search-field-input .field-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--road-blue);
+      display: flex;
+      pointer-events: none;
+    }
+
+    .settlement-dropdown {
+      display: none;
+      position: fixed;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      max-height: 260px;
+      overflow-y: auto;
+      z-index: 20;
+    }
+
+    .settlement-dropdown.open {
+      display: block;
+    }
+
+    .settlement-option {
+      padding: 10px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(10, 22, 40, 0.06);
+    }
+
+    .settlement-option:last-child {
+      border-bottom: none;
+    }
+
+    .settlement-option .settlement-name {
+      color: #13233a;
+      font-size: 0.95em;
+      font-weight: 600;
+    }
+
+    .settlement-option .settlement-region {
+      color: #6b7280;
+      font-size: 0.8em;
+      margin-top: 2px;
+    }
+
+    .settlement-option:hover,
+    .settlement-option.active {
+      background: #eef4ff;
+    }
+
+    .settlement-empty {
+      padding: 10px 14px;
+      color: #8a94a6;
+      font-size: 0.85em;
+    }
+
+    .search-field input {
+      width: 100%;
+      background: #ffffff;
+      border: none;
+      border-radius: 0;
+      padding: 14px 16px 14px 42px;
+      color: var(--road-blue);
+      font-size: 0.95em;
+      font-family: inherit;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+    }
+
+    .search-field input::placeholder {
+      color: var(--road-blue);
+      opacity: 0.62;
+    }
+
+    .search-field input:focus {
+      outline: none;
+      border-color: var(--road-blue);
+      box-shadow: 0 0 0 3px rgba(26, 86, 219, 0.12);
+    }
+
+    .search-field input[type="date"] {
+      color-scheme: light;
+    }
+
+    #dateInput {
+      padding-left: 16px;
+      padding-right: 42px;
+    }
+
+    .date-icon-btn {
+      position: absolute;
+      right: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      padding: 2px;
+      margin: 0;
+      color: #9aa0a6;
+      cursor: pointer;
+      display: flex;
+      line-height: 0;
+    }
+
+    .date-icon-btn:hover {
+      color: var(--road-blue);
+    }
+
+    .date-picker-hidden {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+      border: none;
+      padding: 0;
+    }
+
+    .search-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn-intent {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 15px 22px;
+      border-radius: 0;
+      font-size: 0.95em;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: #ffffff;
+      color: var(--road-blue);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.22);
+      transition: all 0.25s ease;
+    }
+
+    .btn-intent svg {
+      flex-shrink: 0;
+    }
+
+    .btn-intent-icon {
+      flex-shrink: 0;
+      width: 46px;
+      height: 34px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .btn-intent:hover {
+      background: #eef4ff;
+      transform: translateY(-2px);
+      box-shadow: 0 12px 22px rgba(0, 0, 0, 0.28);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 32px;
+      border-radius: 10px;
+      font-size: 1.05em;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--mint);
+      color: var(--navy);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 30px rgba(29, 233, 182, 0.4);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--mint);
+      border-color: var(--mint);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      transform: translateY(-3px);
+    }
+
+    .btn-icon {
+      font-size: 1.2em;
+    }
+
+    /* ============ FEATURES / ROLES ============ */
+    .roles-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      background: linear-gradient(180deg, rgba(29, 233, 182, 0.03) 0%, transparent 100%);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(2em, 4vw, 2.8em);
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      font-size: 1.1em;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    .role-card {
+      background: linear-gradient(135deg, rgba(29, 233, 182, 0.08) 0%, rgba(126, 234, 214, 0.04) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 32px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .role-card::before {
+      content: '';
+      position: absolute;
+      top: -100%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(180deg, rgba(29, 233, 182, 0.08) 0%, transparent 100%);
+      transition: top 0.3s ease;
+    }
+
+    .role-card:hover {
+      border-color: var(--mint);
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(29, 233, 182, 0.15);
+    }
+
+    .role-card:hover::before {
+      top: 0;
+    }
+
+    .role-icon {
+      font-size: 3.5em;
+      margin-bottom: 20px;
+      display: block;
+    }
+
+    .role-card h3 {
+      font-size: 1.6em;
+      margin-bottom: 16px;
+      font-weight: 700;
+    }
+
+    .role-card p {
+      color: var(--text-secondary);
+      margin-bottom: 28px;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+
+    .role-card .btn {
+      width: 100%;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ============ FEATURES / BENEFITS ============ */
+    .benefits-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px;
+    }
+
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 32px;
+    }
+
+    .benefit-card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .benefit-icon {
+      font-size: 2.5em;
+    }
+
+    .benefit-card h3 {
+      font-size: 1.2em;
+      font-weight: 700;
+    }
+
+    .benefit-card p {
+      color: var(--text-secondary);
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+
+    /* ============ CTA SECTION ============ */
+    .cta-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      background: linear-gradient(135deg, rgba(29, 233, 182, 0.12) 0%, rgba(29, 233, 182, 0.05) 100%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      text-align: center;
+      margin-bottom: 80px;
+    }
+
+    .cta-section h2 {
+      font-size: clamp(1.8em, 4vw, 2.6em);
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .cta-section p {
+      color: var(--text-secondary);
+      font-size: 1.1em;
+      margin-bottom: 40px;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .cta-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    /* ============ SOCIAL / TELEGRAM ============ */
+    .social-section {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 60px 24px;
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    .social-section h2 {
+      font-size: 2em;
+      margin-bottom: 24px;
+      font-weight: 700;
+    }
+
+    .social-section p {
+      color: var(--text-secondary);
+      font-size: 1.05em;
+      margin-bottom: 32px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .telegram-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #0088cc;
+      color: white;
+      padding: 16px 40px;
+      border-radius: 10px;
+      font-size: 1.1em;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      margin-bottom: 20px;
+    }
+
+    .telegram-button:hover {
+      background: #0074b1;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 136, 204, 0.3);
+    }
+
+    .telegram-icon {
+      font-size: 1.3em;
+    }
+
+    .social-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .social-buttons .telegram-button,
+    .social-buttons .vk-button {
+      margin-bottom: 0;
+    }
+
+    .vk-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: #0077ff;
+      color: white;
+      padding: 16px 40px;
+      border-radius: 10px;
+      font-size: 1.1em;
+      font-weight: 700;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .vk-button:hover {
+      background: #0062d1;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 119, 255, 0.3);
+    }
+
+    .vk-icon {
+      font-size: 1.3em;
+    }
+
+    /* ============ FOOTER ============ */
+    footer {
+      background: rgba(29, 233, 182, 0.04);
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9em;
+    }
+
+    .footer-content {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 24px;
+      align-items: center;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .footer-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+
+    .footer-links a:hover {
+      color: var(--mint);
+    }
+
+    /* ============ RESPONSIVE ============ */
+    @media (max-width: 768px) {
+      nav ul {
+        gap: 16px;
+      }
+
+      .hero {
+        padding: 40px 16px 50px;
+      }
+
+      .hero h1 {
+        font-size: 2em;
+      }
+
+      .hero-top {
+        flex-direction: column;
+        gap: 24px;
+      }
+
+      .hero-image img {
+        height: 240px;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .roles-section,
+      .benefits-section {
+        padding: 60px 16px;
+      }
+
+      .roles-grid {
+        gap: 16px;
+      }
+
+      .role-card {
+        padding: 32px 24px;
+      }
+
+      .cta-section {
+        padding: 50px 24px;
+        margin-bottom: 60px;
+      }
+
+      .cta-buttons {
+        flex-direction: column;
+      }
+
+      .footer-content {
+        flex-direction: column;
+        gap: 16px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      nav {
+        padding: 12px 16px;
+      }
+
+      .logo {
+        font-size: 1.2em;
+      }
+
+      nav ul {
+        display: none;
+      }
+
+      .hero-subtitle {
+        font-size: 1em;
+      }
+
+      .section-header h2 {
+        font-size: 1.6em;
+      }
+
+      .role-icon {
+        font-size: 2.8em;
+      }
+
+      .role-card h3 {
+        font-size: 1.3em;
+      }
+    }
+
+    /* ============ ANIMATIONS ============ */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .hero-content {
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    .role-card {
+      animation: fadeIn 0.6s ease-out;
+      animation-fill-mode: both;
+    }
+
+    .role-card:nth-child(1) { animation-delay: 0.1s; }
+    .role-card:nth-child(2) { animation-delay: 0.2s; }
+    .role-card:nth-child(3) { animation-delay: 0.3s; }
+
+  </style>
+</head>
+<body>
+
+  <!-- ============ HEADER ============ -->
+  <header>
+    <nav>
+      <a href="#" class="logo">RoadMates</a>
+      <ul>
+        <li><a href="https://vk.ru/roadmates" class="nav-vk" target="_blank">VK</a></li>
+        <li><a href="#community" class="nav-cta">@roadmates_kz</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ============ HERO SECTION ============ -->
+  <section class="hero">
+    <div class="hero-top">
+      <div class="hero-content">
+        <h1>
+          <span class="highlight">Поехали вместе!</span><br>
+          Найди своих SoulMates в RoadMates
+        </h1>
+
+        <p class="hero-subtitle">
+          Социальная сеть попутчиков, где мы вместе превращаем рискованную авантюру поездки с незнакомцем, в увлекательное путешествие с единомышленником.
+        </p>
+      </div>
+
+      <div class="hero-image">
+        <img src="image/hero-couple.png" alt="Попутчики RoadMates счастливо едут на машине на фоне гор">
+      </div>
+    </div>
+
+    <form class="search-card" id="searchForm" onsubmit="return false;">
+      <div class="search-fields">
+        <div class="search-field">
+          <label for="fromInput">Откуда</label>
+          <div class="search-field-input">
+            <span class="field-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+            </span>
+            <input type="text" id="fromInput" placeholder="Город, село, район" autocomplete="off">
+            <div class="settlement-dropdown" id="fromDropdown"></div>
+          </div>
+        </div>
+        <div class="search-field">
+          <label for="toInput">Куда</label>
+          <div class="search-field-input">
+            <span class="field-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>
+            </span>
+            <input type="text" id="toInput" placeholder="Город, село, район" autocomplete="off">
+            <div class="settlement-dropdown" id="toDropdown"></div>
+          </div>
+        </div>
+        <div class="search-field">
+          <label for="dateInput">Когда
+            <svg class="chalk-stick" width="40" height="16" viewBox="0 0 40 16" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2" y="4" width="36" height="9" rx="4.5" fill="#f6f1e6" stroke="#d8d0bd" stroke-width="0.6"/>
+              <rect x="2" y="4" width="10" height="9" rx="4.5" fill="#e4dcc8"/>
+              <line x1="14" y1="6" x2="30" y2="6" stroke="#e6ddc8" stroke-width="0.8" stroke-linecap="round"/>
+              <line x1="14" y1="11" x2="26" y2="11" stroke="#e6ddc8" stroke-width="0.8" stroke-linecap="round"/>
+            </svg>
+          </label>
+          <div class="search-field-input">
+            <input type="text" id="dateInput" inputmode="numeric" placeholder="дд/мм/гггг" maxlength="10" autocomplete="off">
+            <button type="button" class="date-icon-btn" id="dateIconBtn" aria-label="Выбрать дату из календаря">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </button>
+            <input type="date" id="dateInputPicker" class="date-picker-hidden" tabindex="-1" aria-hidden="true">
+          </div>
+        </div>
+      </div>
+
+      <div class="search-actions">
+        <button type="button" class="btn-intent" onclick="goToApp('driver')">
+          <img class="btn-intent-icon" src="image/icon-driver.png" alt="">
+          Ищу водителя
+        </button>
+        <button type="button" class="btn-intent" onclick="goToApp('passenger')">
+          <img class="btn-intent-icon" src="image/icon-passenger.png" alt="">
+          Ищу пассажиров
+        </button>
+        <button type="button" class="btn-intent" onclick="goToApp('any')">
+          <img class="btn-intent-icon" src="image/icon-companion.png" alt="">
+          Ищу попутчика
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <script>
+    // Public, read-only settlement search backing the "Откуда/Куда" autocomplete —
+    // same endpoint the real app uses (apps/server/src/routes/settlements.ts).
+    // Points at the current production server (Timeweb Cloud Apps, id 253379,
+    // technical domain — no custom domain assigned to the server itself yet).
+    // If that technical domain is ever regenerated (e.g. after a clone/rebuild),
+    // fetch the current one via `GET /api/v1/apps/253379` on the Timeweb Cloud
+    // API (see docs/TIMEWEB_MIGRATION.md in roadmates-app) and update this.
+    // Either way, that server's CORS_ORIGIN must include this landing's
+    // origin(s) (https://roadmates.app / https://www.roadmates.app), or the
+    // browser will silently block the response — add it via the Timeweb
+    // dashboard UI, NOT the API (PATCH /apps/{id} replaces the whole envs
+    // object and has bricked prod before, see CLAUDE.md Gotchas).
+    var SETTLEMENTS_API_BASE = 'https://seriousevgeniy-cpu-roadmates-app-7b5f.twc1.net';
+
+    function setupSettlementAutocomplete(inputId, dropdownId) {
+      var input = document.getElementById(inputId);
+      var dropdown = document.getElementById(dropdownId);
+      var debounceTimer = null;
+      var controller = null;
+      var items = [];
+      var activeIndex = -1;
+
+      function positionDropdown() {
+        var rect = input.getBoundingClientRect();
+        dropdown.style.left = rect.left + 'px';
+        dropdown.style.top = (rect.bottom + 6) + 'px';
+        dropdown.style.width = rect.width + 'px';
+      }
+
+      function closeDropdown() {
+        dropdown.classList.remove('open');
+        dropdown.innerHTML = '';
+        items = [];
+        activeIndex = -1;
+      }
+
+      function selectItem(item) {
+        input.value = item.nameRu;
+        input.dataset.settlementId = item.id;
+        input.dataset.lat = item.lat;
+        input.dataset.lng = item.lng;
+        closeDropdown();
+      }
+
+      function renderItems(settlements) {
+        items = settlements;
+        activeIndex = -1;
+        dropdown.innerHTML = '';
+        if (!settlements.length) {
+          var empty = document.createElement('div');
+          empty.className = 'settlement-empty';
+          empty.textContent = 'Ничего не найдено';
+          dropdown.appendChild(empty);
+          dropdown.classList.add('open');
+          return;
+        }
+        settlements.forEach(function (item, idx) {
+          var el = document.createElement('div');
+          el.className = 'settlement-option';
+          var countryLabel = item.country === 'KZ' ? 'Казахстан' : 'Россия';
+          var subtitleParts = [countryLabel];
+          if (item.region) subtitleParts.push(item.region);
+          if (item.district) subtitleParts.push(item.district);
+
+          var nameEl = document.createElement('div');
+          nameEl.className = 'settlement-name';
+          nameEl.textContent = item.nameRu;
+          var regionEl = document.createElement('div');
+          regionEl.className = 'settlement-region';
+          regionEl.textContent = subtitleParts.join(', ');
+
+          el.appendChild(nameEl);
+          el.appendChild(regionEl);
+          el.addEventListener('mousedown', function (e) {
+            e.preventDefault();
+            selectItem(item);
+          });
+          el.addEventListener('mouseenter', function () {
+            activeIndex = idx;
+            highlightActive();
+          });
+          dropdown.appendChild(el);
+        });
+        dropdown.classList.add('open');
+      }
+
+      function highlightActive() {
+        var opts = dropdown.querySelectorAll('.settlement-option');
+        opts.forEach(function (el, idx) {
+          el.classList.toggle('active', idx === activeIndex);
+        });
+        if (activeIndex >= 0 && opts[activeIndex]) {
+          opts[activeIndex].scrollIntoView({ block: 'nearest' });
+        }
+      }
+
+      function search(query) {
+        if (controller) controller.abort();
+        controller = new AbortController();
+        var url = SETTLEMENTS_API_BASE + '/api/settlements?q=' + encodeURIComponent(query) + '&limit=8';
+        fetch(url, { signal: controller.signal })
+          .then(function (res) { return res.ok ? res.json() : { settlements: [] }; })
+          .then(function (data) { renderItems(data.settlements || []); })
+          .catch(function () { /* network/CORS failure: fail silently, plain text still works */ });
+      }
+
+      input.addEventListener('input', function () {
+        delete input.dataset.settlementId;
+        var q = input.value.trim();
+        clearTimeout(debounceTimer);
+        if (q.length < 2) {
+          closeDropdown();
+          return;
+        }
+        debounceTimer = setTimeout(function () {
+          positionDropdown();
+          search(q);
+        }, 250);
+      });
+
+      input.addEventListener('keydown', function (e) {
+        if (!dropdown.classList.contains('open') || !items.length) return;
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          activeIndex = Math.min(activeIndex + 1, items.length - 1);
+          highlightActive();
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          activeIndex = Math.max(activeIndex - 1, 0);
+          highlightActive();
+        } else if (e.key === 'Enter') {
+          if (activeIndex >= 0) {
+            e.preventDefault();
+            selectItem(items[activeIndex]);
+          }
+        } else if (e.key === 'Escape') {
+          closeDropdown();
+        }
+      });
+
+      input.addEventListener('blur', function () {
+        setTimeout(closeDropdown, 150);
+      });
+
+      window.addEventListener('scroll', function () {
+        if (dropdown.classList.contains('open')) positionDropdown();
+      }, true);
+      window.addEventListener('resize', function () {
+        if (dropdown.classList.contains('open')) positionDropdown();
+      });
+    }
+
+    setupSettlementAutocomplete('fromInput', 'fromDropdown');
+    setupSettlementAutocomplete('toInput', 'toDropdown');
+
+    // ---- Scale the whole hero block down as one unit (desktop only) so it
+    // fits above the fold without distorting proportions (photo/fields/buttons
+    // all shrink together, exactly like browser zoom) — the freed-up width
+    // becomes extra side margin since .hero is centered via margin:0 auto.
+    // transform:scale() doesn't shrink the element's own contribution to page
+    // flow, so a negative bottom margin (sized from the *natural*, untransformed
+    // height via offsetHeight) closes the gap that would otherwise appear below.
+    (function fitHeroScale() {
+      var hero = document.querySelector('.hero');
+      var HERO_SCALE = 0.72;
+
+      function apply() {
+        if (window.innerWidth < 900) {
+          hero.style.transform = '';
+          hero.style.marginBottom = '';
+          return;
+        }
+        hero.style.transform = 'scale(' + HERO_SCALE + ')';
+        hero.style.transformOrigin = 'top center';
+        var naturalHeight = hero.offsetHeight; // offsetHeight ignores transform
+        hero.style.marginBottom = (-(naturalHeight * (1 - HERO_SCALE))) + 'px';
+      }
+
+      apply();
+      window.addEventListener('resize', apply);
+    })();
+
+    // ---- "Когда" field: Russian дд/мм/гггг display, defaults to today,
+    // backed by a hidden native <input type="date"> for the calendar picker. ----
+    (function setupDateField() {
+      var textInput = document.getElementById('dateInput');
+      var pickerInput = document.getElementById('dateInputPicker');
+      var iconBtn = document.getElementById('dateIconBtn');
+
+      function pad2(n) { return String(n).padStart(2, '0'); }
+
+      function todayIso() {
+        var d = new Date();
+        return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+      }
+
+      function isoToRu(iso) {
+        var parts = iso.split('-');
+        if (parts.length !== 3) return '';
+        return parts[2] + '/' + parts[1] + '/' + parts[0];
+      }
+
+      function ruToIso(ru) {
+        var m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(ru.trim());
+        if (!m) return null;
+        var day = Number(m[1]), month = Number(m[2]), year = Number(m[3]);
+        var d = new Date(year, month - 1, day);
+        if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null;
+        return year + '-' + pad2(month) + '-' + pad2(day);
+      }
+
+      // Default to today on load.
+      var iso = todayIso();
+      pickerInput.value = iso;
+      textInput.value = isoToRu(iso);
+
+      // Auto-insert slashes as the user types digits.
+      textInput.addEventListener('input', function () {
+        var digits = textInput.value.replace(/\D/g, '').slice(0, 8);
+        var formatted = digits;
+        if (digits.length > 4) {
+          formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
+        } else if (digits.length > 2) {
+          formatted = digits.slice(0, 2) + '/' + digits.slice(2);
+        }
+        textInput.value = formatted;
+        var parsedIso = ruToIso(formatted);
+        if (parsedIso) pickerInput.value = parsedIso;
+      });
+
+      // Picking a date from the native calendar keeps the text field in sync.
+      pickerInput.addEventListener('change', function () {
+        if (pickerInput.value) textInput.value = isoToRu(pickerInput.value);
+      });
+
+      iconBtn.addEventListener('click', function () {
+        if (typeof pickerInput.showPicker === 'function') {
+          try { pickerInput.showPicker(); return; } catch (e) { /* fall through */ }
+        }
+        pickerInput.focus();
+        pickerInput.click();
+      });
+    })();
+
+    function goToApp(intent) {
+      var fromInput = document.getElementById('fromInput');
+      var toInput = document.getElementById('toInput');
+      var from = fromInput.value.trim();
+      var to = toInput.value.trim();
+      var dateRu = document.getElementById('dateInput').value.trim();
+      var dateMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dateRu);
+      var dateIso = dateMatch ? (dateMatch[3] + '-' + dateMatch[2] + '-' + dateMatch[1]) : '';
+
+      var params = new URLSearchParams();
+      if (from) params.set('from', from);
+      if (to) params.set('to', to);
+      if (fromInput.dataset.settlementId) params.set('fromId', fromInput.dataset.settlementId);
+      if (toInput.dataset.settlementId) params.set('toId', toInput.dataset.settlementId);
+      if (dateIso) params.set('date', dateIso);
+      params.set('intent', intent);
+
+      window.open('https://rider.roadmates.app/?' + params.toString(), '_blank');
+    }
+  </script>
+
+
+
+
+
+
+
+  <!-- ============ SOCIAL / TELEGRAM SECTION ============ -->
+  <section class="social-section" id="community">
+    <h2>Оставайся в курсе</h2>
+    <p>Подписывайся на наши каналы, чтобы узнать о новостях, конкурсах, фичах и багах первым.</p>
+
+    <div class="social-buttons">
+      <a href="https://t.me/roadmates_kz" class="telegram-button" target="_blank">
+        <span class="telegram-icon">✈️</span>
+        Подписаться @roadmates_kz
+      </a>
+      <a href="https://vk.ru/roadmates" class="vk-button" target="_blank">
+        <span class="vk-icon">💬</span>
+        Подписаться VK
+      </a>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="footer-content">
+      <div>&copy; 2026 RoadMates · Хакасия, Россия - Астана, Казахстан</div>
+      <div class="footer-links">
+        <a href="mailto:support@roadmates.app">По вопросам технической поддержки пишите нам на почту: support@roadmates.app</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

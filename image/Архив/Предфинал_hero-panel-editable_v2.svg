@@ -1,0 +1,288 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="3360"
+   height="1274"
+   viewBox="0 0 3360 1274"
+   version="1.1"
+   id="svg12"
+   sodipodi:docname="hero-panel-editable_v2.svg"
+   inkscape:version="1.4.4 (dcaf3e7, 2026-05-05)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <sodipodi:namedview
+     id="namedview12"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.19970238"
+     inkscape:cx="1715.0522"
+     inkscape:cy="235.35022"
+     inkscape:window-width="1440"
+     inkscape:window-height="830"
+     inkscape:window-x="-6"
+     inkscape:window-y="-6"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g10" />
+  <title
+     id="title1">RoadMates — hero road panel (editable)</title>
+  <desc
+     id="desc1">Editable twin of the live hero search panel: hero-clean.jpg background (the source mockup photo with the baked-in UI removed) plus real vector fields/buttons matching the site's layout. Images are linked by relative path (hero-clean.jpg, icon-driver.png, icon-passenger.png, icon-companion.png) — keep this SVG in the same &quot;image&quot; folder.</desc>
+  <defs
+     id="defs1">
+    <clipPath
+       id="panelClip">
+      <rect
+         x="0"
+         y="0"
+         width="3360"
+         height="1274"
+         rx="46"
+         id="rect1" />
+    </clipPath>
+    <style
+       id="style1">
+    @import url('https://fonts.googleapis.com/css2?family=Marck+Script&amp;family=Neucha&amp;family=Caveat:wght@600&amp;display=swap');
+    .label { font-family: 'Marck Script', 'Neucha', cursive; font-size: 92px; font-weight: 400; fill: #ffffff; }
+    .placeholder { font-family: Arial, Helvetica, sans-serif; font-size: 38px; fill: #123a75; fill-opacity: 0.72; }
+    .btn-text { font-family: Arial, Helvetica, sans-serif; font-size: 42px; font-weight: 700; fill: #123a75; }
+  </style>
+    <g id="pinIcon">
+      <path
+         d="M-44,-8 c0,-30 22,-48 44,-48 c22,0 44,18 44,48 c0,32 -44,64 -44,64 c0,0 -44,-32 -44,-64 Z"
+         fill="none"
+         stroke="#123a75"
+         stroke-width="8" />
+      <circle cx="0" cy="-12" r="15" fill="none" stroke="#123a75" stroke-width="7" />
+    </g>
+  </defs>
+  <g
+     clip-path="url(#panelClip)"
+     id="g2">
+    <!-- Background: the source mockup photo, baked-in fields/buttons removed -->
+    <image
+       href="hero-clean.jpg"
+       x="0"
+       y="0"
+       width="3360"
+       height="1274"
+       preserveAspectRatio="xMidYMid slice"
+       id="image1" />
+    <rect
+       x="0"
+       y="0"
+       width="3360"
+       height="1274"
+       fill="none"
+       stroke="#1DE9B6"
+       stroke-opacity="0.2"
+       stroke-width="4"
+       id="rect2" />
+  </g>
+  <!-- ============ FIELDS: Откуда / Куда / Когда ============ -->
+  <!-- Group box (for reference while editing): x134 y510 w2286 h255 -->
+  <g
+     id="g10">
+    <text
+       class="label"
+       x="134"
+       y="552"
+       transform="rotate(-2 134 552)"
+       id="text2">Откуда</text>
+    <rect
+       x="134"
+       y="600.03723"
+       width="602.60571"
+       height="114.91803"
+       rx="24.901062"
+       fill="#fbfbf8"
+       id="rect3"
+       style="stroke-width:0.749062" />
+    <use
+       href="#pinIcon"
+       transform="translate(224,657.5) scale(0.62)"
+       id="pin-otkuda" />
+    <text
+       class="placeholder"
+       x="290"
+       y="672"
+       id="text3">Город, село, район</text>
+    <text
+       class="label"
+       x="914"
+       y="552"
+       transform="rotate(-2 914 552)"
+       id="text4">Куда</text>
+    <rect
+       x="914"
+       y="599.78564"
+       width="616.23511"
+       height="113.34715"
+       rx="25.46426"
+       fill="#fbfbf8"
+       id="rect4"
+       style="stroke-width:0.75229" />
+    <use
+       href="#pinIcon"
+       transform="translate(1004,656.5) scale(0.62)"
+       id="pin-kuda" />
+    <text
+       class="placeholder"
+       x="1070"
+       y="672"
+       id="text5">Город, село, район</text>
+    <text
+       class="label"
+       x="1694"
+       y="552"
+       transform="rotate(-2 1694 552)"
+       id="text6">Когда</text>
+    <g id="chalk-stick" transform="translate(1955,515) rotate(-8) scale(2.4)">
+      <ellipse cx="20" cy="19" rx="24" ry="5" fill="#000000" opacity="0.18"/>
+      <rect x="2" y="4" width="36" height="9" rx="4.5" fill="#f6f1e6" stroke="#d8d0bd" stroke-width="0.6"/>
+      <rect x="2" y="4" width="10" height="9" rx="4.5" fill="#e4dcc8"/>
+      <line x1="14" y1="6" x2="30" y2="6" stroke="#e6ddc8" stroke-width="0.8" stroke-linecap="round"/>
+      <line x1="14" y1="11" x2="26" y2="11" stroke="#e6ddc8" stroke-width="0.8" stroke-linecap="round"/>
+    </g>
+    <rect
+       x="1694"
+       y="596.24481"
+       width="658.72473"
+       height="120.42875"
+       rx="27.22003"
+       fill="#fbfbf8"
+       id="rect6"
+       style="stroke-width:0.801722" />
+    <text
+       class="placeholder"
+       x="1740"
+       y="672"
+       id="text7">дд.мм.гггг</text>
+    <g
+       transform="translate(2246.888,630)"
+       id="g9">
+      <rect
+         x="0"
+         y="0"
+         width="60"
+         height="60"
+         rx="8"
+         fill="none"
+         stroke="#9aa0a6"
+         stroke-width="6"
+         id="rect7" />
+      <line
+         x1="12"
+         y1="-8"
+         x2="12"
+         y2="10"
+         stroke="#9aa0a6"
+         stroke-width="6"
+         id="line7" />
+      <line
+         x1="48"
+         y1="-8"
+         x2="48"
+         y2="10"
+         stroke="#9aa0a6"
+         stroke-width="6"
+         id="line8" />
+      <line
+         x1="0"
+         y1="20"
+         x2="60"
+         y2="20"
+         stroke="#9aa0a6"
+         stroke-width="4"
+         id="line9" />
+    </g>
+  </g>
+  <!-- ============ ACTIONS: 3 intent buttons ============ -->
+  <!-- Group box (for reference while editing): x2587 y242 w706 h790, buttons space-between -->
+  <g
+     id="g12">
+    <rect
+       x="2487.8574"
+       y="245.5408"
+       width="829.9281"
+       height="186.4592"
+       rx="36"
+       fill="#fbfbf8"
+       id="rect10"
+       ry="0" />
+    <image
+       href="icon-driver.png"
+       x="2627"
+       y="277"
+       width="180"
+       height="120"
+       preserveAspectRatio="xMidYMid meet"
+       id="image10" />
+    <text
+       class="btn-text"
+       x="2840"
+       y="352"
+       id="text10">Ищу водителя</text>
+    <rect
+       x="2487.8574"
+       y="542"
+       width="833.46899"
+       height="190"
+       rx="36"
+       ry="0"
+       fill="#fbfbf8"
+       id="rect11" />
+    <image
+       href="icon-passenger.png"
+       x="2637"
+       y="577"
+       width="160"
+       height="120"
+       preserveAspectRatio="xMidYMid meet"
+       id="image11" />
+    <text
+       class="btn-text"
+       x="2840"
+       y="652"
+       id="text11">Ищу пассажиров</text>
+    <rect
+       x="2485.9614"
+       y="845.54083"
+       width="832.25385"
+       height="188.96289"
+       rx="36"
+       ry="0"
+       fill="#fbfbf8"
+       id="rect12" />
+    <image
+       href="icon-companion.png"
+       x="2637"
+       y="872"
+       width="150"
+       height="130"
+       preserveAspectRatio="xMidYMid meet"
+       id="image12" />
+    <text
+       class="btn-text"
+       x="2840"
+       y="952"
+       id="text12">Ищу попутчика</text>
+  </g>
+  <metadata
+     id="metadata12">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>RoadMates — hero road panel (editable)</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+</svg>

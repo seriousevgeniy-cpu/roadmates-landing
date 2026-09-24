@@ -1,0 +1,64 @@
+<svg width="3360" height="1274" viewBox="0 0 3360 1274" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<title>RoadMates — hero road panel (editable)</title>
+<desc>Editable twin of the live hero search panel: hero-clean.jpg background (the source mockup photo with the baked-in UI removed) plus real vector fields/buttons matching the site's layout. Images are linked by relative path (hero-clean.jpg, icon-driver.png, icon-passenger.png, icon-companion.png) — keep this SVG in the same "image" folder.</desc>
+
+<defs>
+  <clipPath id="panelClip">
+    <rect x="0" y="0" width="3360" height="1274" rx="46"/>
+  </clipPath>
+  <style>
+    .label { font-family: Arial, Helvetica, sans-serif; font-size: 34px; font-weight: 700; fill: #ffffff; }
+    .placeholder { font-family: Arial, Helvetica, sans-serif; font-size: 38px; fill: #1a56db; fill-opacity: 0.62; }
+    .btn-text { font-family: Arial, Helvetica, sans-serif; font-size: 42px; font-weight: 700; fill: #1a56db; }
+  </style>
+</defs>
+
+<g clip-path="url(#panelClip)">
+  <!-- Background: the source mockup photo, baked-in fields/buttons removed -->
+  <image href="hero-clean.jpg" x="0" y="0" width="3360" height="1274" preserveAspectRatio="xMidYMid slice"/>
+  <rect x="0" y="0" width="3360" height="1274" fill="none" stroke="#1DE9B6" stroke-opacity="0.2" stroke-width="4"/>
+</g>
+
+<!-- ============ FIELDS: Откуда / Куда / Когда ============ -->
+<!-- Group box (for reference while editing): x134 y510 w2286 h255 -->
+<g>
+  <text class="label" x="134" y="552">ОТКУДА</text>
+  <rect x="134" y="575" width="726" height="170" rx="30" fill="#fbfbf8"/>
+  <path d="M180,660 c0,-30 22,-48 44,-48 c22,0 44,18 44,48 c0,32 -44,64 -44,64 c0,0 -44,-32 -44,-64 Z" fill="none" stroke="#1a56db" stroke-width="8"/>
+  <circle cx="224" cy="656" r="15" fill="none" stroke="#1a56db" stroke-width="7"/>
+  <text class="placeholder" x="290" y="672">Город, село, район</text>
+
+  <text class="label" x="914" y="552">КУДА</text>
+  <rect x="914" y="575" width="726" height="170" rx="30" fill="#fbfbf8"/>
+  <path d="M960,660 c0,-30 22,-48 44,-48 c22,0 44,18 44,48 c0,32 -44,64 -44,64 c0,0 -44,-32 -44,-64 Z" fill="none" stroke="#1a56db" stroke-width="8"/>
+  <circle cx="1004" cy="656" r="15" fill="none" stroke="#1a56db" stroke-width="7"/>
+  <text class="placeholder" x="1070" y="672">Город, село, район</text>
+
+  <text class="label" x="1694" y="552">КОГДА</text>
+  <rect x="1694" y="575" width="726" height="170" rx="30" fill="#fbfbf8"/>
+  <text class="placeholder" x="1740" y="672">дд.мм.гггг</text>
+  <g transform="translate(2300,630)">
+    <rect x="0" y="0" width="60" height="60" rx="8" fill="none" stroke="#9aa0a6" stroke-width="6"/>
+    <line x1="12" y1="-8" x2="12" y2="10" stroke="#9aa0a6" stroke-width="6"/>
+    <line x1="48" y1="-8" x2="48" y2="10" stroke="#9aa0a6" stroke-width="6"/>
+    <line x1="0" y1="20" x2="60" y2="20" stroke="#9aa0a6" stroke-width="4"/>
+  </g>
+</g>
+
+<!-- ============ ACTIONS: 3 intent buttons ============ -->
+<!-- Group box (for reference while editing): x2587 y242 w706 h790, buttons space-between -->
+<g>
+  <rect x="2587" y="242" width="706" height="190" rx="36" fill="#fbfbf8"/>
+  <image href="icon-driver.png" x="2627" y="277" width="180" height="120" preserveAspectRatio="xMidYMid meet"/>
+  <text class="btn-text" x="2840" y="352">Ищу водителя</text>
+
+  <rect x="2587" y="542" width="706" height="190" rx="36" fill="#fbfbf8"/>
+  <image href="icon-passenger.png" x="2637" y="577" width="160" height="120" preserveAspectRatio="xMidYMid meet"/>
+  <text class="btn-text" x="2840" y="652">Ищу пассажиров</text>
+
+  <rect x="2587" y="842" width="706" height="190" rx="36" fill="#fbfbf8" stroke="#1a56db" stroke-width="6"/>
+  <image href="icon-companion.png" x="2637" y="872" width="150" height="130" preserveAspectRatio="xMidYMid meet"/>
+  <text class="btn-text" x="2840" y="952">Ищу попутчика</text>
+</g>
+
+</svg>
