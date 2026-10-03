@@ -720,6 +720,72 @@
       font-size: 1.3em;
     }
 
+    .social-buttons .share-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--mint);
+      color: var(--navy);
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      padding: 16px 40px;
+      border-radius: 10px;
+      font-size: 1.1em;
+      font-weight: 700;
+      transition: all 0.3s ease;
+    }
+
+    .share-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(29, 233, 182, 0.25);
+    }
+
+    .share-icon {
+      font-size: 1.3em;
+    }
+
+    .social-section p.feedback-text {
+      max-width: 640px;
+      margin-bottom: 16px;
+    }
+
+    .social-section p.feedback-text:last-of-type {
+      margin-bottom: 32px;
+    }
+
+    .support-button {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 16px 32px;
+      border: 2px solid var(--mint);
+      border-radius: 10px;
+      color: var(--text-secondary);
+      text-decoration: none;
+      line-height: 1.5;
+      transition: all 0.3s ease;
+    }
+
+    .support-button strong {
+      color: var(--mint);
+      font-weight: 700;
+    }
+
+    .support-button:hover {
+      background: rgba(29, 233, 182, 0.08);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(29, 233, 182, 0.2);
+    }
+
+    .pilot-note {
+      margin: 18px auto 0;
+      max-width: 640px;
+      text-align: center;
+      font-size: 1.05em;
+      line-height: 1.5;
+      color: var(--text-secondary);
+    }
+
     /* ============ FOOTER ============ */
     footer {
       background: rgba(29, 233, 182, 0.04);
@@ -738,23 +804,6 @@
       justify-content: center;
       gap: 24px;
       align-items: center;
-    }
-
-    .footer-links {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-
-    .footer-links a {
-      color: var(--text-muted);
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-
-    .footer-links a:hover {
-      color: var(--mint);
     }
 
     /* ============ RESPONSIVE ============ */
@@ -958,6 +1007,8 @@
         </button>
       </div>
     </form>
+
+    <p class="pilot-note">🚧 RoadMates — на стадии пилотного проекта, поэтому в начальном этапе может быть мало поездок.</p>
   </section>
 
   <script>
@@ -1205,6 +1256,45 @@
       });
     })();
 
+    document.addEventListener('DOMContentLoaded', function setupShareButton() {
+      var btn = document.getElementById('shareBtn');
+      var label = document.getElementById('shareBtnLabel');
+      var url = 'https://www.roadmates.app/';
+      var text = 'RoadMates — социальная сеть попутчиков. Присоединяйся!';
+      var resetTimer;
+
+      function flash(msg) {
+        label.textContent = msg;
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(function () { label.textContent = 'Позвать друга'; }, 2200);
+      }
+
+      function copyFallback() {
+        var ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+        flash(ok ? 'Ссылка скопирована ✓' : url);
+      }
+
+      btn.addEventListener('click', function () {
+        if (navigator.share) {
+          navigator.share({ title: 'RoadMates', text: text, url: url }).catch(function () {});
+          return;
+        }
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(function () { flash('Ссылка скопирована ✓'); }, copyFallback);
+        } else {
+          copyFallback();
+        }
+      });
+    });
+
     function goToApp(intent) {
       var fromInput = document.getElementById('fromInput');
       var toInput = document.getElementById('toInput');
@@ -1236,6 +1326,8 @@
   <section class="social-section" id="community">
     <h2>Оставайся в курсе</h2>
     <p>Подписывайся на наши каналы, чтобы узнать о новостях, конкурсах, фичах и багах первым.</p>
+    <p class="feedback-text">Мы только учимся и делаем RoadMates вместе с Вами. Нашли косяк, неудобное место или хотите написать предложение по улучшению продукта? Расскажите нам, мы всё читаем и исправляем.</p>
+    <p class="feedback-text">Попутчиков тем больше, чем больше нас. Позовите друзей, с которыми вам по пути. Давайте сделаем сервис лучше вместе!❤️</p>
 
     <div class="social-buttons">
       <a href="https://t.me/roadmates_kz" class="telegram-button" target="_blank">
@@ -1246,16 +1338,21 @@
         <span class="vk-icon">💬</span>
         Подписаться VK
       </a>
+      <button type="button" class="share-button" id="shareBtn">
+        <span class="share-icon">👋</span>
+        <span id="shareBtnLabel">Позвать друга</span>
+      </button>
     </div>
+
+    <a href="mailto:support@roadmates.app" class="support-button">
+      По вопросам технической поддержки пишите нам на почту: <strong>support@roadmates.app</strong>
+    </a>
   </section>
 
   <!-- ============ FOOTER ============ -->
   <footer>
     <div class="footer-content">
       <div>&copy; 2026 RoadMates · Хакасия, Россия - Астана, Казахстан</div>
-      <div class="footer-links">
-        <a href="mailto:support@roadmates.app">По вопросам технической поддержки пишите нам на почту: support@roadmates.app</a>
-      </div>
     </div>
   </footer>
 
