@@ -1143,10 +1143,10 @@
           activeIndex = Math.max(activeIndex - 1, 0);
           highlightActive();
         } else if (e.key === 'Enter') {
-          if (activeIndex >= 0) {
-            e.preventDefault();
-            selectItem(items[activeIndex]);
-          }
+          // Enter with nothing highlighted picks the top suggestion, so a typed
+          // city still gets its settlement id (otherwise the app sees "any city").
+          e.preventDefault();
+          selectItem(items[activeIndex >= 0 ? activeIndex : 0]);
         } else if (e.key === 'Escape') {
           closeDropdown();
         }
