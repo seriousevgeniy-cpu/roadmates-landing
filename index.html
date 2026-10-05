@@ -204,7 +204,9 @@
       border-radius: 24px;
       padding: 24px 18px;
       position: relative;
-      overflow: hidden;
+      /* No overflow:hidden — the suggestion lists are absolutely positioned and
+         can extend past the card. Backgrounds are still clipped to the
+         rounded border box. */
     }
 
     .search-fields {
@@ -281,9 +283,19 @@
       pointer-events: none;
     }
 
+    /* Anchored to its field (.search-field-input is position:relative), NOT
+       fixed to the window: on desktop .hero is scaled with transform (which
+       turns it into the containing block for fixed children, misplacing the
+       list), and on phones the on-screen keyboard resizes/pans the viewport.
+       JS only flips it above the field (.up) and caps its height. */
     .settlement-dropdown {
       display: none;
-      position: fixed;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: calc(100% + 6px);
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
       background: #ffffff;
       border-radius: 10px;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
@@ -294,6 +306,11 @@
 
     .settlement-dropdown.open {
       display: block;
+    }
+
+    .settlement-dropdown.up {
+      top: auto;
+      bottom: calc(100% + 6px);
     }
 
     .settlement-option {
@@ -1035,10 +1052,19 @@
       var activeIndex = -1;
 
       function positionDropdown() {
+        // CSS anchors the list to the field. Here we only decide whether it fits
+        // below the VISIBLE area (visual viewport = what's left above the
+        // on-screen keyboard on phones) or must open upward, and cap its height.
         var rect = input.getBoundingClientRect();
-        dropdown.style.left = rect.left + 'px';
-        dropdown.style.top = (rect.bottom + 6) + 'px';
-        dropdown.style.width = rect.width + 'px';
+        var vv = window.visualViewport;
+        var viewTop = vv ? vv.offsetTop : 0;
+        var viewBottom = vv ? vv.offsetTop + vv.height : window.innerHeight;
+        var below = viewBottom - rect.bottom - 14;
+        var above = rect.top - viewTop - 14;
+        var up = below < 150 && above > below;
+        dropdown.classList.toggle('up', up);
+        var room = up ? above : below;
+        dropdown.style.maxHeight = Math.max(110, Math.min(260, room)) + 'px';
       }
 
       function closeDropdown() {
@@ -1087,6 +1113,12 @@
           el.appendChild(regionEl);
           el.addEventListener('mousedown', function (e) {
             e.preventDefault();
+            selectItem(item);
+          });
+          // Touch fallback: some mobile browsers blur the field (and our blur
+          // handler closes the list) before emulating mousedown, so also accept
+          // the tap's click.
+          el.addEventListener('click', function () {
             selectItem(item);
           });
           el.addEventListener('mouseenter', function () {
@@ -1162,6 +1194,15 @@
       window.addEventListener('resize', function () {
         if (dropdown.classList.contains('open')) positionDropdown();
       });
+      // The on-screen keyboard opening/closing resizes only the visual viewport.
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', function () {
+          if (dropdown.classList.contains('open')) positionDropdown();
+        });
+        window.visualViewport.addEventListener('scroll', function () {
+          if (dropdown.classList.contains('open')) positionDropdown();
+        });
+      }
     }
 
     setupSettlementAutocomplete('fromInput', 'fromDropdown');
