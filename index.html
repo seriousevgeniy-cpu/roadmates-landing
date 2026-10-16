@@ -1437,11 +1437,14 @@
       });
       return out;
     })();
-    document.querySelectorAll('a[href^="https://rider.roadmates.app"]').forEach(function (a) {
+    // Wait for the whole document: some CTA links sit below this <script>.
+    document.addEventListener('DOMContentLoaded', function () {
       if (!UTM_QS.toString()) return;
-      var u = new URL(a.href);
-      UTM_QS.forEach(function (v, k) { u.searchParams.set(k, v); });
-      a.href = u.toString();
+      document.querySelectorAll('a[href^="https://rider.roadmates.app"]').forEach(function (a) {
+        var u = new URL(a.href);
+        UTM_QS.forEach(function (v, k) { u.searchParams.set(k, v); });
+        a.href = u.toString();
+      });
     });
 
     function goToApp(intent) {
