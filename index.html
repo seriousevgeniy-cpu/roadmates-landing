@@ -1428,6 +1428,22 @@
       });
     });
 
+    // Marketing attribution: carry the visitor's utm_* over to every link into the app,
+    // so rider-web can record which campaign a registration came from.
+    var UTM_QS = (function () {
+      var p = new URLSearchParams(window.location.search), out = new URLSearchParams();
+      ['utm_source', 'utm_medium', 'utm_campaign'].forEach(function (k) {
+        if (p.get(k)) out.set(k, p.get(k));
+      });
+      return out;
+    })();
+    document.querySelectorAll('a[href^="https://rider.roadmates.app"]').forEach(function (a) {
+      if (!UTM_QS.toString()) return;
+      var u = new URL(a.href);
+      UTM_QS.forEach(function (v, k) { u.searchParams.set(k, v); });
+      a.href = u.toString();
+    });
+
     function goToApp(intent) {
       var fromInput = document.getElementById('fromInput');
       var toInput = document.getElementById('toInput');
@@ -1444,6 +1460,7 @@
       if (toInput.dataset.settlementId) params.set('toId', toInput.dataset.settlementId);
       if (dateIso) params.set('date', dateIso);
       params.set('intent', intent);
+      UTM_QS.forEach(function (v, k) { params.set(k, v); });
 
       window.open('https://rider.roadmates.app/trips?' + params.toString(), '_blank');
     }
