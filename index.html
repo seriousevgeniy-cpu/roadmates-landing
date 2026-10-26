@@ -1207,6 +1207,16 @@
     // 'https://seriousevgeniy-cpu-roadmates-app-7b5f.twc1.net'.
     var SETTLEMENTS_API_BASE = 'https://api.roadmates.app';
 
+    var __countryNames = null;
+    function countryNameRu(code) {
+      try {
+        if (!__countryNames) __countryNames = new Intl.DisplayNames(['ru'], { type: 'region' });
+        return __countryNames.of(code) || code;
+      } catch (e) {
+        return code;
+      }
+    }
+
     // Autocomplete host unreachable/slow -> turn the top VPN notice orange (see showVpnBanner).
     function setVpnAlert(on) {
       if (on) showVpnBanner('suggest');
@@ -1266,7 +1276,9 @@
         settlements.forEach(function (item, idx) {
           var el = document.createElement('div');
           el.className = 'settlement-option';
-          var countryLabel = item.country === 'KZ' ? 'Казахстан' : 'Россия';
+          // The list now also holds big world cities, so the country comes from the ISO code (Intl.DisplayNames);
+          // RU/KZ keep their fixed wording and a failure falls back to the bare code.
+          var countryLabel = item.country === 'KZ' ? 'Казахстан' : item.country === 'RU' ? 'Россия' : countryNameRu(item.country);
           var subtitleParts = [countryLabel];
           if (item.region) subtitleParts.push(item.region);
           if (item.district) subtitleParts.push(item.district);
