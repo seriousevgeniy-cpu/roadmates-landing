@@ -894,6 +894,70 @@
       color: var(--text-secondary);
     }
 
+    .vpn-note {
+      margin: 10px auto 0;
+      max-width: 640px;
+      text-align: center;
+      font-size: 0.85em;
+      line-height: 1.5;
+      color: var(--text-muted);
+      border: 1px solid transparent;
+      border-radius: 10px;
+      padding: 8px 14px;
+      transition: all 0.3s ease;
+    }
+
+    .vpn-note.vpn-note--alert {
+      font-size: 1em;
+      color: #ffd9a0;
+      border-color: #f5a623;
+      background: rgba(245, 166, 35, 0.12);
+    }
+
+    /* Floating hint shown when the app host does not answer / answers slowly (typically a VPN). */
+    .vpn-banner {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      max-width: 560px;
+      margin: 0 auto;
+      z-index: 1000;
+      padding: 14px 40px 14px 16px;
+      border: 1px solid #f5a623;
+      border-radius: 12px;
+      background: #1c1a14;
+      color: #ffe7c2;
+      font-size: 0.95em;
+      line-height: 1.5;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    }
+    .vpn-banner[hidden] { display: none; }
+    .vpn-banner strong { color: #ffd9a0; }
+    .vpn-banner-close {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+    }
+    .vpn-banner-go {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 14px;
+      border: 1px solid #f5a623;
+      border-radius: 8px;
+      color: #ffd9a0;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
     /* ============ FOOTER ============ */
     footer {
       background: rgba(29, 233, 182, 0.04);
@@ -1131,6 +1195,7 @@
     </form>
 
     <p class="pilot-note">🚧 RoadMates — на стадии пилотного проекта, поэтому в начальном этапе может быть мало поездок.</p>
+    <p class="vpn-note" id="vpnNote">💡 Не открывается приложение или не появляются подсказки городов? Отключите VPN или смените его сервер: с некоторыми VPN соединение с сервисом блокируется.</p>
   </section>
 
   <script>
@@ -1147,6 +1212,11 @@
     // dashboard UI, NOT the API (PATCH /apps/{id} replaces the whole envs
     // object and has bricked prod before, see CLAUDE.md Gotchas).
     var SETTLEMENTS_API_BASE = 'https://seriousevgeniy-cpu-roadmates-app-7b5f.twc1.net';
+
+    function setVpnAlert(on) {
+      var el = document.getElementById('vpnNote');
+      if (el) el.classList.toggle('vpn-note--alert', !!on);
+    }
 
     function setupSettlementAutocomplete(inputId, dropdownId) {
       var input = document.getElementById(inputId);
@@ -1247,12 +1317,27 @@
 
       function search(query) {
         if (controller) controller.abort();
-        controller = new AbortController();
+        var ctl = controller = new AbortController();
+        var timedOut = false;
+        // Same Timeweb server as the app: if it is unreachable (typically a VPN exit node
+        // that cannot reach it) show the VPN hint instead of failing silently.
+        var timer = setTimeout(function () { timedOut = true; ctl.abort(); }, 6000);
         var url = SETTLEMENTS_API_BASE + '/api/settlements?q=' + encodeURIComponent(query) + '&limit=8';
-        fetch(url, { signal: controller.signal })
-          .then(function (res) { return res.ok ? res.json() : { settlements: [] }; })
-          .then(function (data) { renderItems(data.settlements || []); })
-          .catch(function () { /* network/CORS failure: fail silently, plain text still works */ });
+        fetch(url, { signal: ctl.signal })
+          .then(function (res) {
+            clearTimeout(timer);
+            if (!res.ok) throw new Error('bad status');
+            return res.json();
+          })
+          .then(function (data) {
+            setVpnAlert(false);
+            renderItems(data.settlements || []);
+          })
+          .catch(function (err) {
+            clearTimeout(timer);
+            if (err && err.name === 'AbortError' && !timedOut) return; // superseded by a newer keystroke
+            setVpnAlert(true);
+          });
       }
 
       input.addEventListener('input', function () {
@@ -1462,12 +1547,71 @@
 
     // Metrika goals: clicks on the CTA links into the app, and the search buttons.
     function ymGoal(name) { try { if (window.ym) ym(113654814, 'reachGoal', name); } catch (e) {} }
+    // App reachability probe. A no-cors fetch resolves on ANY response from the app host and
+    // rejects only when it cannot be reached at all, so it works cross-origin without CORS.
+    // Typical failure: the visitor's VPN drops traffic to Russian IPs. Also warn when it is merely slow.
+    var APP_PROBE_URL = 'https://rider.roadmates.app/favicon.ico';
+    var APP_SLOW_MS = 4000, APP_TIMEOUT_MS = 8000;
+    var appState = 'pending'; // pending | ok | bad
+    var vpnHintAcked = false; // visitor already saw the hint and chose to open the app anyway
+
+    function showVpnBanner(reason) {
+      var b = document.getElementById('vpnBanner');
+      if (!b || !b.hidden) return;
+      b.hidden = false;
+      ymGoal('vpn_hint_' + reason);
+    }
+    function hideVpnBanner() {
+      var b = document.getElementById('vpnBanner');
+      if (b) b.hidden = true;
+    }
+
+    function probeApp() {
+      var started = Date.now(), ctl = new AbortController();
+      var timer = setTimeout(function () { ctl.abort(); }, APP_TIMEOUT_MS);
+      fetch(APP_PROBE_URL + '?_=' + started, { mode: 'no-cors', cache: 'no-store', signal: ctl.signal })
+        .then(function () {
+          clearTimeout(timer);
+          var took = Date.now() - started;
+          appState = took > APP_SLOW_MS ? 'bad' : 'ok';
+          if (appState === 'bad') showVpnBanner('slow');
+        })
+        .catch(function () {
+          clearTimeout(timer);
+          appState = 'bad';
+          showVpnBanner('unreachable');
+        });
+    }
+    // After the page has loaded, so the probe does not compete with the landing's own assets.
+    window.addEventListener('load', function () { setTimeout(probeApp, 300); });
+
+    document.addEventListener('DOMContentLoaded', function () {
+      var close = document.getElementById('vpnBannerClose');
+      if (close) close.addEventListener('click', hideVpnBanner);
+      var go = document.getElementById('vpnBannerGo');
+      if (go) go.addEventListener('click', function () { vpnHintAcked = true; hideVpnBanner(); });
+    });
+
+    // True = the app looked unreachable, the hint was shown instead and navigation must wait for a second click.
+    function interceptIfAppBad() {
+      if (appState !== 'bad' || vpnHintAcked) return false;
+      vpnHintAcked = true; // the second click goes through
+      var b = document.getElementById('vpnBanner');
+      if (b) b.hidden = true; // re-show even if it was dismissed earlier
+      showVpnBanner('click');
+      return true;
+    }
+
     document.addEventListener('click', function (ev) {
       var a = ev.target.closest && ev.target.closest('a[href^="https://rider.roadmates.app"]');
-      if (a) ymGoal('cta_app_click');
+      if (!a) return;
+      if (a.id === 'vpnBannerGo') return;
+      if (interceptIfAppBad()) { ev.preventDefault(); return; }
+      ymGoal('cta_app_click');
     });
 
     function goToApp(intent) {
+      if (interceptIfAppBad()) return;
       ymGoal('search_' + intent);
       var fromInput = document.getElementById('fromInput');
       var toInput = document.getElementById('toInput');
@@ -1529,6 +1673,14 @@
       По вопросам технической поддержки пишите нам на почту: <strong>support@roadmates.app</strong>
     </a>
   </section>
+
+  <!-- Shown by the app-reachability probe (see script) -->
+  <div class="vpn-banner" id="vpnBanner" role="alert" hidden>
+    <button type="button" class="vpn-banner-close" id="vpnBannerClose" aria-label="Закрыть">&times;</button>
+    <div><strong>Приложение долго открывается или не открывается?</strong></div>
+    <div>Проверьте, не включён ли VPN: часть VPN-сервисов блокирует российские сайты. Отключите его или добавьте <strong>roadmates.app</strong> в исключения («российские сайты напрямую»), затем попробуйте снова.</div>
+    <a href="https://rider.roadmates.app/login?next=/profile" class="vpn-banner-go" id="vpnBannerGo" target="_blank" rel="noopener">Всё равно открыть</a>
+  </div>
 
   <!-- ============ FOOTER ============ -->
   <footer>
