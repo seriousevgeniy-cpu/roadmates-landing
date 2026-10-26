@@ -1541,7 +1541,7 @@
     // App reachability probe. A no-cors fetch resolves on ANY response from the app host and
     // rejects only when it cannot be reached at all, so it works cross-origin without CORS.
     // Typical failure: the visitor's VPN drops traffic to Russian IPs. Also warn when it is merely slow.
-    var APP_PROBE_URL = 'https://rider.roadmates.app/favicon.ico';
+    var APP_PROBE_URL = 'https://rider.roadmates.app/icon.svg'; // small static file: no server-side rendering (a missing path would render Next's 404 page)
     var APP_SLOW_MS = 4000, APP_TIMEOUT_MS = 8000;
     var appState = 'pending'; // pending | ok | bad
     var vpnHintAcked = false; // visitor already saw the hint and chose to open the app anyway
