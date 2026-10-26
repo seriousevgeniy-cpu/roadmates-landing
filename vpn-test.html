@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Проверка связи — RoadMates</title>
+  <style>
+    :root { --navy:#0A1628; --mint:#1DE9B6; --ok:#1DE9B6; --bad:#ff7a7a; --muted:rgba(255,255,255,.55); --border:rgba(29,233,182,.25); }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--navy); color:#fff; font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    main { max-width: 860px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; color: var(--mint); }
+    p { color: var(--muted); margin: 0 0 16px; }
+    button { font: inherit; font-weight: 600; padding: 12px 22px; border-radius: 12px; border: 0; cursor: pointer; background: var(--mint); color: #062; margin-right: 8px; }
+    button[disabled] { opacity: .5; cursor: default; }
+    button.secondary { background: transparent; color: var(--mint); border: 1px solid var(--mint); }
+    .wrap { overflow-x: auto; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; min-width: 560px; }
+    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    th { color: var(--muted); font-weight: 600; font-size: .85rem; }
+    td.ok { color: var(--ok); } td.bad { color: var(--bad); } td.wait { color: var(--muted); }
+    small { color: var(--muted); display:block; }
+    #verdict { margin-top: 20px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 1.05rem; display: none; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Проверка связи с RoadMates</h1>
+  <p>Включите VPN, как обычно, и нажмите кнопку. Проверка займёт до минуты. Потом нажмите «Скопировать результат» и отправьте текст нам.</p>
+  <button id="run" type="button">Запустить проверку</button>
+  <button id="copy" class="secondary" type="button" hidden>Скопировать результат</button>
+
+  <div class="wrap">
+    <table>
+      <thead><tr><th>Что проверяем</th><th>Новый адрес<small>api.roadmates.app</small></th><th>Старый адрес<small>…twc1.net</small></th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+  <div id="verdict"></div>
+</main>
+
+<script>
+(function () {
+  var HOSTS = [
+    { key: 'new', name: 'api.roadmates.app', base: 'https://api.roadmates.app' },
+    { key: 'old', name: 'twc1.net', base: 'https://seriousevgeniy-cpu-roadmates-app-7b5f.twc1.net' }
+  ];
+  var TIMEOUT = 10000;
+  var TESTS = [
+    { id: 'health', title: 'Сервер отвечает', hint: 'GET /api/health, 3 раза', run: health },
+    { id: 'methods', title: 'Данные приложения', hint: 'GET /api/auth/methods', run: methods },
+    { id: 'post', title: 'Отправка данных (вход)', hint: 'POST /api/auth/login, ждём отказ 400/401', run: post },
+    { id: 'ws', title: 'Чат (WebSocket)', hint: 'соединение для сообщений', run: ws }
+  ];
+
+  var rowsEl = document.getElementById('rows');
+  var runBtn = document.getElementById('run');
+  var copyBtn = document.getElementById('copy');
+  var verdictEl = document.getElementById('verdict');
+  var results = {}; // results[testId][hostKey] = {ok, text}
+
+  function timedFetch(url, opts) {
+    var c = new AbortController();
+    var timer = setTimeout(function () { c.abort(); }, TIMEOUT);
+    opts = opts || {};
+    opts.signal = c.signal;
+    opts.cache = 'no-store';
+    var t0 = performance.now();
+    return fetch(url, opts).then(function (r) {
+      clearTimeout(timer);
+      return { status: r.status, ms: Math.round(performance.now() - t0) };
+    }, function (e) {
+      clearTimeout(timer);
+      var ms = Math.round(performance.now() - t0);
+      throw { timeout: e && e.name === 'AbortError', ms: ms };
+    });
+  }
+  function failText(e) { return e && e.timeout ? 'нет ответа за ' + (TIMEOUT / 1000) + ' с' : 'ошибка соединения' + (e && e.ms != null ? ' (' + e.ms + ' мс)' : ''); }
+
+  function health(h) {
+    var ms = [], fails = 0, chain = Promise.resolve();
+    for (var i = 0; i < 3; i++) {
+      chain = chain.then(function () {
+        return timedFetch(h.base + '/api/health?_=' + Date.now()).then(function (r) { if (r.status === 200) ms.push(r.ms); else fails++; }, function () { fails++; });
+      });
+    }
+    return chain.then(function () {
+      if (!ms.length) return { ok: false, text: 'не отвечает (0 из 3)' };
+      return { ok: fails === 0, text: ms.length + ' из 3: ' + ms.join(', ') + ' мс' };
+    });
+  }
+  function methods(h) {
+    return timedFetch(h.base + '/api/auth/methods?_=' + Date.now()).then(
+      function (r) { return { ok: r.status === 200, text: 'HTTP ' + r.status + ', ' + r.ms + ' мс' }; },
+      function (e) { return { ok: false, text: failText(e) }; });
+  }
+  function post(h) {
+    return timedFetch(h.base + '/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'vpn-test@invalid.example', password: 'vpn-test' })
+    }).then(
+      function (r) { return { ok: [400, 401, 403, 429].indexOf(r.status) >= 0, text: 'ответ HTTP ' + r.status + ', ' + r.ms + ' мс' }; },
+      function (e) { return { ok: false, text: failText(e) }; });
+  }
+  function ws(h) {
+    return new Promise(function (resolve) {
+      var t0 = performance.now(), done = false, sock;
+      function finish(res) { if (done) return; done = true; clearTimeout(timer); try { sock && sock.close(); } catch (e) {} resolve(res); }
+      var timer = setTimeout(function () { finish({ ok: false, text: 'нет ответа за ' + (TIMEOUT / 1000) + ' с' }); }, TIMEOUT);
+      try {
+        sock = new WebSocket(h.base.replace('https://', 'wss://') + '/socket.io/?EIO=4&transport=websocket');
+        sock.onmessage = function () { finish({ ok: true, text: 'соединение есть, ' + Math.round(performance.now() - t0) + ' мс' }); };
+        sock.onerror = function () { finish({ ok: false, text: 'ошибка соединения' }); };
+        sock.onclose = function () { finish({ ok: false, text: 'соединение закрыто' }); };
+      } catch (e) { finish({ ok: false, text: 'ошибка соединения' }); }
+    });
+  }
+
+  function cell(testId, hostKey) { return document.getElementById('c-' + testId + '-' + hostKey); }
+  function setCell(testId, hostKey, res) {
+    results[testId] = results[testId] || {};
+    results[testId][hostKey] = res;
+    var el = cell(testId, hostKey);
+    el.textContent = (res.ok ? '✓ ' : '✗ ') + res.text;
+    el.className = res.ok ? 'ok' : 'bad';
+  }
+
+  function buildRows() {
+    rowsEl.innerHTML = '';
+    TESTS.forEach(function (t) {
+      var tr = document.createElement('tr');
+      var th = document.createElement('td');
+      th.innerHTML = '';
+      th.appendChild(document.createTextNode(t.title));
+      var s = document.createElement('small'); s.textContent = t.hint; th.appendChild(s);
+      tr.appendChild(th);
+      HOSTS.forEach(function (h) {
+        var td = document.createElement('td');
+        td.id = 'c-' + t.id + '-' + h.key; td.className = 'wait'; td.textContent = 'ждём…';
+        tr.appendChild(td);
+      });
+      rowsEl.appendChild(tr);
+    });
+  }
+
+  function runHost(h) {
+    var chain = Promise.resolve();
+    TESTS.forEach(function (t) {
+      chain = chain.then(function () { return t.run(h).then(function (res) { setCell(t.id, h.key, res); }); });
+    });
+    return chain;
+  }
+
+  function summarize() {
+    function score(key) { return TESTS.filter(function (t) { return results[t.id] && results[t.id][key] && results[t.id][key].ok; }).length; }
+    var n = score('new'), o = score('old'), total = TESTS.length, msg, color = '#fff';
+    if (n === total && o === total) msg = 'Оба адреса работают. На этом VPN разницы нет.';
+    else if (n === total && o < total) msg = 'Новый адрес работает полностью, старый — нет (' + o + ' из ' + total + '). Переход на новый адрес поможет.';
+    else if (n > o) msg = 'Новый адрес работает лучше старого (' + n + ' и ' + o + ' из ' + total + ').';
+    else if (n === 0 && o === 0) msg = 'Не работает ни один адрес. VPN режет серверы целиком.';
+    else if (n < o) msg = 'Новый адрес работает хуже старого (' + n + ' и ' + o + ' из ' + total + ').';
+    else msg = 'Результаты одинаковые: ' + n + ' из ' + total + '.';
+    verdictEl.textContent = msg; verdictEl.style.display = 'block';
+    return msg;
+  }
+
+  function reportText(msg) {
+    var lines = ['Проверка связи RoadMates, ' + new Date().toISOString().replace('T', ' ').slice(0, 16) + ' UTC'];
+    TESTS.forEach(function (t) {
+      HOSTS.forEach(function (h) {
+        var r = results[t.id] && results[t.id][h.key];
+        lines.push(t.title + ' [' + h.name + ']: ' + (r ? (r.ok ? 'OK ' : 'FAIL ') + r.text : '—'));
+      });
+    });
+    lines.push('Итог: ' + msg);
+    return lines.join('\n');
+  }
+
+  runBtn.addEventListener('click', function () {
+    runBtn.disabled = true; copyBtn.hidden = true; verdictEl.style.display = 'none'; results = {};
+    runBtn.textContent = 'Проверяем…';
+    buildRows();
+    Promise.all(HOSTS.map(runHost)).then(function () {
+      var msg = summarize();
+      var text = reportText(msg);
+      copyBtn.hidden = false;
+      copyBtn.onclick = function () {
+        function done() { copyBtn.textContent = 'Скопировано ✓'; setTimeout(function () { copyBtn.textContent = 'Скопировать результат'; }, 2000); }
+        if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () { window.prompt('Скопируйте текст:', text); });
+        else window.prompt('Скопируйте текст:', text);
+      };
+      runBtn.disabled = false; runBtn.textContent = 'Проверить ещё раз';
+    });
+  });
+
+  buildRows();
+})();
+</script>
+</body>
+</html>
