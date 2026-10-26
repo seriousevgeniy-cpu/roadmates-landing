@@ -1202,7 +1202,10 @@
     // browser will silently block the response — add it via the Timeweb
     // dashboard UI, NOT the API (PATCH /apps/{id} replaces the whole envs
     // object and has bricked prod before, see CLAUDE.md Gotchas).
-    var SETTLEMENTS_API_BASE = 'https://seriousevgeniy-cpu-roadmates-app-7b5f.twc1.net';
+    // 2026-10-26: moved from the technical *.twc1.net host to our own api.roadmates.app (same server). A visitor's VPN
+    // that times out *.twc1.net opened api.roadmates.app fine. The old host still works as an emergency fallback:
+    // 'https://seriousevgeniy-cpu-roadmates-app-7b5f.twc1.net'.
+    var SETTLEMENTS_API_BASE = 'https://api.roadmates.app';
 
     // Autocomplete host unreachable/slow -> turn the top VPN notice orange (see showVpnBanner).
     function setVpnAlert(on) {
