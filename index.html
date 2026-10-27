@@ -488,17 +488,53 @@
       color: var(--road-blue);
     }
 
-    .date-picker-hidden {
+    /* Own calendar popup for "Когда" (the native date picker + showPicker() does nothing on iPhone).
+       Anchored to its field like the city dropdowns, so the scaled hero / on-screen keyboard cannot misplace it. */
+    .cal-pop {
+      display: none;
       position: absolute;
       left: 0;
-      top: 0;
-      width: 1px;
-      height: 1px;
-      opacity: 0;
-      pointer-events: none;
-      border: none;
-      padding: 0;
+      top: calc(100% + 6px);
+      width: 292px;
+      max-width: calc(100vw - 16px);
+      box-sizing: border-box;
+      padding: 10px;
+      background: #ffffff;
+      color: #13233a;
+      border-radius: 14px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      z-index: 30;
+      touch-action: pan-y;
+      -webkit-user-select: none;
+      user-select: none;
     }
+    .cal-pop.open { display: block; }
+    .cal-pop.up { top: auto; bottom: calc(100% + 6px); }
+    .cal-pop.right { left: auto; right: 0; }
+    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+    .cal-title { font-weight: 700; font-size: 0.95em; }
+    .cal-nav {
+      width: 36px; height: 36px; border: none; border-radius: 50%; background: transparent;
+      color: #123a75; font-size: 22px; line-height: 1; cursor: pointer; font-family: inherit;
+    }
+    .cal-nav:hover { background: #eef4ff; }
+    .cal-week, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; }
+    .cal-week span { font-size: 0.72em; font-weight: 600; color: #8a94a6; padding: 4px 0; }
+    .cal-grid { row-gap: 2px; }
+    .cal-day {
+      width: 36px; height: 36px; margin: 0 auto; border: none; border-radius: 50%; background: transparent;
+      color: #13233a; font-size: 0.9em; font-family: inherit; cursor: pointer; padding: 0;
+    }
+    .cal-day:hover { background: #eef4ff; }
+    .cal-day.today { box-shadow: inset 0 0 0 1.5px #123a75; }
+    .cal-day.sel, .cal-day.sel:hover { background: #123a75; color: #ffffff; font-weight: 700; }
+    .cal-foot { margin-top: 6px; text-align: left; }
+    .cal-today { border: none; background: none; color: #123a75; font-weight: 700; font-size: 0.85em; font-family: inherit; cursor: pointer; padding: 6px 4px; }
+    @keyframes cal-next { from { opacity: .4; transform: translateX(26px); } to { opacity: 1; transform: none; } }
+    @keyframes cal-prev { from { opacity: .4; transform: translateX(-26px); } to { opacity: 1; transform: none; } }
+    .cal-body.slide-next { animation: cal-next .18s ease-out; }
+    .cal-body.slide-prev { animation: cal-prev .18s ease-out; }
+    @media (prefers-reduced-motion: reduce) { .cal-body.slide-next, .cal-body.slide-prev { animation: none; } }
 
     .search-actions {
       display: flex;
@@ -1165,7 +1201,7 @@
             <button type="button" class="date-icon-btn" id="dateIconBtn" aria-label="Выбрать дату из календаря">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             </button>
-            <input type="date" id="dateInputPicker" class="date-picker-hidden" tabindex="-1" aria-hidden="true">
+            <div class="cal-pop" id="calPop" role="dialog" aria-label="Выбор даты"></div>
           </div>
         </div>
       </div>
@@ -1431,18 +1467,25 @@
       window.addEventListener('resize', apply);
     })();
 
-    // ---- "Когда" field: Russian дд/мм/гггг display, defaults to today,
-    // backed by a hidden native <input type="date"> for the calendar picker. ----
+    // ---- "Когда" field: Russian дд/мм/гггг text, defaults to today, with our own calendar popup.
+    // (The native <input type="date"> + showPicker() used before does nothing on iPhone: Safari/iOS
+    // has no showPicker() for date inputs, so the calendar icon never opened there.) Swipe the
+    // month sideways on a phone; Esc / a tap outside closes it. ----
     (function setupDateField() {
       var textInput = document.getElementById('dateInput');
-      var pickerInput = document.getElementById('dateInputPicker');
       var iconBtn = document.getElementById('dateIconBtn');
+      var pop = document.getElementById('calPop');
+      var MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+      var WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+      var view = { y: 0, m: 0 };
 
       function pad2(n) { return String(n).padStart(2, '0'); }
 
+      function isoOf(y, m, d) { return y + '-' + pad2(m + 1) + '-' + pad2(d); }
+
       function todayIso() {
         var d = new Date();
-        return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+        return isoOf(d.getFullYear(), d.getMonth(), d.getDate());
       }
 
       function isoToRu(iso) {
@@ -1461,9 +1504,7 @@
       }
 
       // Default to today on load.
-      var iso = todayIso();
-      pickerInput.value = iso;
-      textInput.value = isoToRu(iso);
+      textInput.value = isoToRu(todayIso());
 
       // Auto-insert slashes as the user types digits.
       textInput.addEventListener('input', function () {
@@ -1475,22 +1516,87 @@
           formatted = digits.slice(0, 2) + '/' + digits.slice(2);
         }
         textInput.value = formatted;
-        var parsedIso = ruToIso(formatted);
-        if (parsedIso) pickerInput.value = parsedIso;
       });
 
-      // Picking a date from the native calendar keeps the text field in sync.
-      pickerInput.addEventListener('change', function () {
-        if (pickerInput.value) textInput.value = isoToRu(pickerInput.value);
-      });
+      function isOpen() { return pop.classList.contains('open'); }
 
-      iconBtn.addEventListener('click', function () {
-        if (typeof pickerInput.showPicker === 'function') {
-          try { pickerInput.showPicker(); return; } catch (e) { /* fall through */ }
+      function render(dir) {
+        var sel = ruToIso(textInput.value);
+        var today = todayIso();
+        var offset = (new Date(view.y, view.m, 1).getDay() + 6) % 7; // Monday first
+        var days = new Date(view.y, view.m + 1, 0).getDate();
+        var h = '<div class="cal-head">' +
+          '<button type="button" class="cal-nav" data-nav="-1" aria-label="Предыдущий месяц">&#8249;</button>' +
+          '<span class="cal-title">' + MONTHS[view.m] + ' ' + view.y + '</span>' +
+          '<button type="button" class="cal-nav" data-nav="1" aria-label="Следующий месяц">&#8250;</button></div>' +
+          '<div class="cal-body' + (dir > 0 ? ' slide-next' : dir < 0 ? ' slide-prev' : '') + '"><div class="cal-week">';
+        for (var w = 0; w < 7; w++) h += '<span>' + WEEKDAYS[w] + '</span>';
+        h += '</div><div class="cal-grid">';
+        for (var i = 0; i < offset; i++) h += '<span></span>';
+        for (var d = 1; d <= days; d++) {
+          var iso = isoOf(view.y, view.m, d);
+          h += '<button type="button" class="cal-day' + (iso === sel ? ' sel' : '') + (iso === today ? ' today' : '') +
+            '" data-iso="' + iso + '">' + d + '</button>';
         }
-        pickerInput.focus();
-        pickerInput.click();
+        h += '</div></div><div class="cal-foot"><button type="button" class="cal-today" data-today="1">Сегодня</button></div>';
+        pop.innerHTML = h;
+      }
+
+      function shiftMonth(delta) {
+        var d = new Date(view.y, view.m + delta, 1);
+        view = { y: d.getFullYear(), m: d.getMonth() };
+        render(delta);
+      }
+
+      function close() { pop.classList.remove('open'); }
+
+      function open() {
+        var iso = ruToIso(textInput.value) || todayIso();
+        view = { y: Number(iso.slice(0, 4)), m: Number(iso.slice(5, 7)) - 1 };
+        render(0);
+        pop.classList.remove('up', 'right');
+        pop.classList.add('open');
+        textInput.blur(); // no on-screen keyboard over the calendar
+        // Keep it on screen: flip above the field when there is no room below, align right at the edge.
+        var r = pop.getBoundingClientRect();
+        var fr = pop.parentNode.getBoundingClientRect();
+        if (r.bottom > window.innerHeight - 8 && fr.top - r.height - 6 > 8) pop.classList.add('up');
+        if (r.right > window.innerWidth - 8) pop.classList.add('right');
+      }
+
+      iconBtn.addEventListener('click', function () { if (isOpen()) close(); else open(); });
+
+      pop.addEventListener('click', function (e) {
+        var b = e.target;
+        while (b && b !== pop && b.tagName !== 'BUTTON') b = b.parentNode;
+        if (!b || b === pop) return;
+        if (b.getAttribute('data-nav')) { shiftMonth(Number(b.getAttribute('data-nav'))); return; }
+        var iso = b.getAttribute('data-iso');
+        if (b.getAttribute('data-today')) iso = todayIso();
+        if (iso) { textInput.value = isoToRu(iso); close(); }
       });
+
+      // Phones: swipe the month sideways — left = next month, right = previous.
+      var touch0 = null;
+      pop.addEventListener('touchstart', function (e) {
+        var t = e.touches[0];
+        touch0 = e.touches.length === 1 && t ? { x: t.clientX, y: t.clientY } : null;
+      }, { passive: true });
+      pop.addEventListener('touchend', function (e) {
+        var t = e.changedTouches[0];
+        var s0 = touch0;
+        touch0 = null;
+        if (!s0 || !t) return;
+        var dx = t.clientX - s0.x, dy = t.clientY - s0.y;
+        if (Math.abs(dx) >= 40 && Math.abs(dx) > Math.abs(dy) * 1.5) shiftMonth(dx < 0 ? 1 : -1);
+      }, { passive: true });
+
+      function outside(e) {
+        if (isOpen() && !pop.contains(e.target) && !iconBtn.contains(e.target)) close();
+      }
+      document.addEventListener('mousedown', outside);
+      document.addEventListener('touchstart', outside, { passive: true });
+      document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
     })();
 
     document.addEventListener('DOMContentLoaded', function setupShareButton() {
