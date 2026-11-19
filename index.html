@@ -469,6 +469,27 @@
       padding-right: 42px;
     }
 
+    /* "No such date" hint under the typed date: shown ~2.5 s when a digit is refused. */
+    #dateInput.date-bad {
+      border-color: #e5484d;
+      box-shadow: 0 0 0 4px rgba(229, 72, 77, 0.2);
+    }
+    .date-warn {
+      position: absolute;
+      left: 0;
+      top: 100%;
+      margin-top: 4px;
+      z-index: 30;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: #e5484d;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      line-height: 1.3;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
     .date-icon-btn {
       position: absolute;
       right: 13px;
@@ -577,6 +598,96 @@
       background: #eef4ff;
       transform: translateY(-2px);
       box-shadow: 0 12px 22px rgba(0, 0, 0, 0.28);
+    }
+
+    /* «Ищу попутчика (все)» + the explaining hint: on hover / keyboard focus, and on tap of the (?) button
+       (a phone has no hover, and tapping the main button already starts the search). */
+    .intent-wrap {
+      position: relative;
+      width: 100%;
+    }
+    .intent-wrap .btn-intent {
+      padding-right: 46px;
+    }
+    .intent-sub {
+      font-weight: 600;
+      opacity: 0.75;
+      white-space: nowrap;
+    }
+    .intent-info {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border-radius: 50%;
+      border: 2px solid var(--road-blue);
+      background: #ffffff;
+      color: var(--road-blue);
+      font: 700 13px/1 inherit;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+    .intent-info:hover,
+    .intent-info:focus-visible {
+      background: var(--road-blue);
+      color: #ffffff;
+      outline: none;
+    }
+    .intent-tip {
+      position: absolute;
+      right: 0;
+      bottom: calc(100% + 10px);
+      z-index: 40;
+      /* As wide as the button (never wider than the screen), at least 240px: on a phone the button is
+         almost full width, so a wider hint would run off the left edge. */
+      width: max(100%, 240px);
+      max-width: 92vw;
+      box-sizing: border-box;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #0e1a33;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+      text-align: left;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.4);
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(4px);
+      transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+      pointer-events: none;
+    }
+    .intent-tip::after {
+      content: '';
+      position: absolute;
+      right: 22px;
+      top: 100%;
+      border: 7px solid transparent;
+      border-top-color: #0e1a33;
+    }
+    .intent-tip b { color: var(--mint, #1de9b6); }
+    /* Not enough room above (the sticky header): open below the button instead. */
+    .intent-wrap.tip-below .intent-tip {
+      bottom: auto;
+      top: calc(100% + 10px);
+    }
+    .intent-wrap.tip-below .intent-tip::after {
+      top: auto;
+      bottom: 100%;
+      border-top-color: transparent;
+      border-bottom-color: #0e1a33;
+    }
+    .intent-wrap:hover .intent-tip,
+    .intent-wrap:focus-within .intent-tip,
+    .intent-wrap.tip-open .intent-tip {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
     }
 
     .btn {
@@ -1215,10 +1326,16 @@
           <img class="btn-intent-icon" src="image/icon-passenger.png" alt="">
           Ищу пассажиров
         </button>
-        <button type="button" class="btn-intent" onclick="goToApp('any')">
-          <img class="btn-intent-icon" src="image/icon-companion.png" alt="">
-          Ищу попутчика
-        </button>
+        <div class="intent-wrap" id="intentAny">
+          <button type="button" class="btn-intent" onclick="goToApp('any')" aria-describedby="tipAny">
+            <img class="btn-intent-icon" src="image/icon-companion.png" alt="">
+            <span>Ищу попутчика <span class="intent-sub">(все)</span></span>
+          </button>
+          <button type="button" class="intent-info" id="tipAnyBtn" aria-label="Что значит «Ищу попутчика»?" aria-expanded="false" aria-controls="tipAny">?</button>
+          <div class="intent-tip" id="tipAny" role="tooltip">
+            <b>Все попутчики:</b> и водители, и пассажиры. Подойдёт для совместных поездок, путешествий и отдыха, где машина не обязательна: можно найти компанию и для поездки на поезде, автобусе, самолёте или общественном транспорте.
+          </div>
+        </div>
       </div>
     </form>
 
@@ -1506,9 +1623,62 @@
       // Default to today on load.
       textInput.value = isoToRu(todayIso());
 
-      // Auto-insert slashes as the user types digits.
+      // ---- Only a REAL date can be typed (or pasted): 31/02, 32/01, 29/02/2027 … are refused. ----
+      // Works on the raw digits (DDMMYYYY): a digit that makes a real date impossible is dropped and the
+      // field stays as it was. Days must exist in the month; 29 Feb only in a leap year (checked when the
+      // 4th year digit arrives); years 2000–2099. Same rules as the app (rider-web lib/dateInput.ts).
+      function maxDay(month, year) {
+        if (month === 2) {
+          if (year === undefined) return 29;
+          return ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 29 : 28;
+        }
+        return (month === 4 || month === 6 || month === 9 || month === 11) ? 30 : 31;
+      }
+      function isValidDatePrefix(d) {
+        if (!/^\d*$/.test(d) || d.length > 8) return false;
+        var n = d.length;
+        if (n >= 1 && d.charAt(0) > '3') return false;
+        if (n >= 2) { var day = Number(d.slice(0, 2)); if (day < 1 || day > 31) return false; }
+        if (n >= 3 && d.charAt(2) > '1') return false;
+        if (n >= 4) {
+          var month = Number(d.slice(2, 4));
+          if (month < 1 || month > 12) return false;
+          if (Number(d.slice(0, 2)) > maxDay(month)) return false;
+        }
+        if (n >= 5 && d.charAt(4) !== '2') return false;
+        if (n >= 6 && d.charAt(5) !== '0') return false;
+        if (n >= 8 && Number(d.slice(0, 2)) > maxDay(Number(d.slice(2, 4)), Number(d.slice(4, 8)))) return false;
+        return true;
+      }
+
+      // The last accepted text, to put back when a digit is refused.
+      var prevText = textInput.value;
+      var warn = null, warnTimer = null;
+      function flashBad() {
+        if (!warn) {
+          warn = document.createElement('div');
+          warn.className = 'date-warn';
+          warn.setAttribute('role', 'alert');
+          warn.textContent = 'Такой даты не бывает';
+          textInput.parentNode.appendChild(warn);
+        }
+        warn.style.display = '';
+        textInput.classList.add('date-bad');
+        clearTimeout(warnTimer);
+        warnTimer = setTimeout(function () {
+          warn.style.display = 'none';
+          textInput.classList.remove('date-bad');
+        }, 2500);
+      }
+
+      // Auto-insert slashes as the user types digits (after the real-date check).
       textInput.addEventListener('input', function () {
         var digits = textInput.value.replace(/\D/g, '').slice(0, 8);
+        if (!isValidDatePrefix(digits)) {
+          textInput.value = prevText;
+          flashBad();
+          return;
+        }
         var formatted = digits;
         if (digits.length > 4) {
           formatted = digits.slice(0, 2) + '/' + digits.slice(2, 4) + '/' + digits.slice(4);
@@ -1516,6 +1686,7 @@
           formatted = digits.slice(0, 2) + '/' + digits.slice(2);
         }
         textInput.value = formatted;
+        prevText = formatted;
       });
 
       function isOpen() { return pop.classList.contains('open'); }
@@ -1573,7 +1744,7 @@
         if (b.getAttribute('data-nav')) { shiftMonth(Number(b.getAttribute('data-nav'))); return; }
         var iso = b.getAttribute('data-iso');
         if (b.getAttribute('data-today')) iso = todayIso();
-        if (iso) { textInput.value = isoToRu(iso); close(); }
+        if (iso) { textInput.value = isoToRu(iso); prevText = textInput.value; close(); }
       });
 
       // Phones: swipe the month sideways — left = next month, right = previous.
@@ -1732,6 +1903,41 @@
       if (interceptIfAppBad()) { ev.preventDefault(); return; }
       ymGoal('cta_app_click');
     });
+
+    // (?) next to «Ищу попутчика (все)»: tap toggles the hint, a tap elsewhere / Esc closes it.
+    (function setupIntentHint() {
+      var wrap = document.getElementById('intentAny');
+      var btn = document.getElementById('tipAnyBtn');
+      if (!wrap || !btn) return;
+      var tip = document.getElementById('tipAny');
+      // Show the hint above the button, unless the sticky header / screen top would cover it.
+      function place() {
+        var room = wrap.getBoundingClientRect().top - 96; // ~ sticky header height + margin
+        wrap.classList.toggle('tip-below', room < tip.offsetHeight + 12);
+      }
+      function setOpen(open) {
+        if (open) place();
+        wrap.classList.toggle('tip-open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        if (open) {
+          // Opened below near the bottom of the screen: scroll a little so the whole hint is visible.
+          var r = tip.getBoundingClientRect();
+          if (r.bottom > window.innerHeight - 8) window.scrollBy({ top: r.bottom - window.innerHeight + 16, behavior: 'smooth' });
+        }
+      }
+      wrap.addEventListener('mouseenter', place);
+      wrap.addEventListener('focusin', place);
+      btn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        setOpen(!wrap.classList.contains('tip-open'));
+      });
+      document.addEventListener('click', function (e) {
+        if (!wrap.contains(e.target)) setOpen(false);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') setOpen(false);
+      });
+    })();
 
     function goToApp(intent) {
       if (interceptIfAppBad()) return;
